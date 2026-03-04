@@ -17,6 +17,8 @@ import urllib.request
 from pathlib import Path
 from typing import Optional
 
+from ...utils.path_utils import file_url_to_local_path
+
 logger = logging.getLogger(__name__)
 
 
@@ -26,7 +28,10 @@ def _resolve_local_path(
 ) -> Optional[str]:
     """Return local file path for file:// or plain path; None for remote."""
     if parsed.scheme == "file":
-        local_path = Path(urllib.request.url2pathname(parsed.path))
+        resolved = file_url_to_local_path(url)
+        if not resolved:
+            return None
+        local_path = Path(resolved).expanduser()
         if not local_path.exists():
             raise FileNotFoundError(f"Local file not found: {local_path}")
         if local_path.is_file() and local_path.stat().st_size == 0:

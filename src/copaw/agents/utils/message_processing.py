@@ -9,13 +9,13 @@ This module handles:
 import logging
 import os
 import urllib.parse
-import urllib.request
 from pathlib import Path
 from typing import Optional
 
 from agentscope.message import Msg
 
 from ...constant import WORKING_DIR
+from ...utils.path_utils import file_url_to_local_path
 from .file_handling import download_file_from_base64, download_file_from_url
 
 logger = logging.getLogger(__name__)
@@ -67,14 +67,13 @@ async def _process_single_file_block(
         if url:
             parsed = urllib.parse.urlparse(url)
             if parsed.scheme == "file":
-                try:
-                    local_path = urllib.request.url2pathname(parsed.path)
-                    if not _is_allowed_media_path(local_path):
-                        logger.warning(
-                            "Rejected file:// URL outside allowed media dir",
-                        )
-                        return None
-                except Exception:
+                local_path = file_url_to_local_path(url)
+                if not local_path:
+                    return None
+                if not _is_allowed_media_path(local_path):
+                    logger.warning(
+                        "Rejected file:// URL outside allowed media dir",
+                    )
                     return None
             local_path = await download_file_from_url(
                 url,

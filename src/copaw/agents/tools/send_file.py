@@ -13,6 +13,7 @@ from agentscope.message import (
 )
 
 from ..schema import FileBlock
+from ...utils.path_utils import local_path_to_file_url
 
 
 def _auto_as_type(mt: str) -> str:
@@ -76,7 +77,7 @@ async def send_file_to_user(
 
         # Use local file URL instead of base64
         absolute_path = os.path.abspath(file_path)
-        file_url = f"file://{absolute_path}"
+        file_url = local_path_to_file_url(absolute_path)
         source = {"type": "url", "url": file_url}
 
         if as_type == "image":
